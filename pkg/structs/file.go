@@ -4,20 +4,31 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 )
 
 type File struct {
-	FileInfo FileInfo `json:"info"`
-	Content  []byte   `json:"content"`
+	FileInfo `json:"info"`
+	Content  []byte `json:"content"`
 }
 
 type FileInfo struct {
-	Name string `json:"name"`
-	Path string `json:"path"` //путь хранится без имени
-	Size int64  `json:"size"`
+	Name  string `json:"name"`
+	Path  string `json:"path"` //путь хранится без имени
+	Size  int64  `json:"size"`
+	IsDir bool   `json:"is_dir"`
 }
 
-func ParseFile(path string) (File, error) {
+func (f File) IsDirectory() bool {
+	return f.IsDir
+}
+
+func (f File) GetSize() int64 {
+	return f.Size
+}
+
+func ParseFile(path string, wg *sync.WaitGroup) (File, error) {
+	defer wg.Done()
 	pathlist := strings.Split(path, "/")
 	name := pathlist[len(pathlist)-1]
 	info, err := os.Stat(path)
@@ -25,6 +36,7 @@ func ParseFile(path string) (File, error) {
 		return File{}, fmt.Errorf("file %s not found", path)
 	}
 	size := info.Size()
+	isDir := info.IsDir()
 	content, err := getContent(path)
 	if err != nil {
 		return File{}, err
@@ -32,9 +44,10 @@ func ParseFile(path string) (File, error) {
 
 	return File{
 		FileInfo: FileInfo{
-			Name: name,
-			Path: path,
-			Size: size,
+			Name:  name,
+			Path:  path,
+			Size:  size,
+			IsDir: isDir,
 		},
 		Content: content,
 	}, nil

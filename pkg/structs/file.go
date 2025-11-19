@@ -7,12 +7,8 @@ import (
 )
 
 type File struct {
-	FileInfo    `json:"info"`
-	FileContent `json:"content"`
-}
-
-type FileContent struct {
-	Content []byte `json:"content"`
+	FileInfo FileInfo `json:"info"`
+	Content  []byte   `json:"content"`
 }
 
 type FileInfo struct {
@@ -40,9 +36,7 @@ func ParseFile(path string) (File, error) {
 			Path: path,
 			Size: size,
 		},
-		FileContent: FileContent{
-			Content: content,
-		},
+		Content: content,
 	}, nil
 
 }

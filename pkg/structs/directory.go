@@ -32,9 +32,13 @@ func (d Directory) Update() error {
 	if err == os.ErrNotExist {
 		return d.create()
 	}
-	// Заменить только те файлы и директории,
-	// Которые требуется
-	return nil
+
+	for _, obj := range d.Children {
+		_ = obj.Update()
+
+	}
+
+	return err
 }
 
 func (d Directory) create() error {

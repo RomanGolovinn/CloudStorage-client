@@ -27,6 +27,24 @@ func (d Directory) GetSize() int64 {
 	return d.Size
 }
 
+func (d Directory) Update() error {
+	_, err := os.Stat(d.Path)
+	if err == os.ErrNotExist {
+		return d.create()
+	}
+	// Заменить только те файлы и директории,
+	// Которые требуется
+	return nil
+}
+
+func (d Directory) create() error {
+	err := os.MkdirAll(d.Path+d.Name, 0755)
+	if err != nil {
+		return fmt.Errorf("can not create dir %s", (d.Path + d.Name))
+	}
+	return nil
+}
+
 func ParseDir(path string, wg *sync.WaitGroup) (Directory, error) {
 	defer wg.Done()
 	entries, err := os.ReadDir(path)

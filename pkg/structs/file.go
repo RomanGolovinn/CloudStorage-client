@@ -27,6 +27,38 @@ func (f File) GetSize() int64 {
 	return f.Size
 }
 
+func (f File) Update() error {
+	_, err := os.Stat(f.Path)
+	if err == os.ErrNotExist {
+		return f.create()
+	}
+	// Идея: сделать проверку на совпадение контента
+	// и исправлять только несовпадающий контент
+	err = os.Remove(f.Path)
+	if err != nil {
+		return fmt.Errorf("can not remove file")
+	}
+	return f.create()
+}
+
+func (f File) create() error {
+	_, err := os.Create(f.Path)
+	if err != nil {
+		return fmt.Errorf("can not create file %s", f.Path)
+	}
+	file, err := os.Open(f.Path)
+	if err != nil {
+		return fmt.Errorf("can not open file %s", f.Path)
+	}
+	defer file.Close()
+
+	_, err = file.Write(f.Content)
+	if err != nil {
+		return fmt.Errorf("can not write file %s", f.Path)
+	}
+	return nil
+}
+
 func ParseFile(path string, wg *sync.WaitGroup) (File, error) {
 	defer wg.Done()
 	pathlist := strings.Split(path, "/")

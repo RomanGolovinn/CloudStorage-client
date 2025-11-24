@@ -28,12 +28,10 @@ func ParseDir(path string, wg *sync.WaitGroup) (fsys.Directory, error) {
 	if len(entries) == 0 {
 		size = 0
 		return fsys.Directory{
-			FileInfo: fsys.FileInfo{
-				Name:  name,
-				Path:  path,
-				Size:  size,
-				IsDir: true,
-			},
+			Name:     name,
+			Path:     path,
+			Size:     size,
+			IsDir:    true,
 			Children: []fsys.FileSystemObject{},
 		}, nil
 	}
@@ -78,12 +76,10 @@ func ParseDir(path string, wg *sync.WaitGroup) (fsys.Directory, error) {
 	}
 
 	return fsys.Directory{
-		FileInfo: fsys.FileInfo{
-			Name:  name,
-			Path:  path,
-			Size:  size,
-			IsDir: true,
-		},
+		Name:     name,
+		Path:     path,
+		Size:     size,
+		IsDir:    true,
 		Children: children,
 	}, nil
 }

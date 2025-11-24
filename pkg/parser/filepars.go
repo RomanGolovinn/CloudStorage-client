@@ -25,12 +25,10 @@ func ParseFile(path string, wg *sync.WaitGroup) (fsys.File, error) {
 	}
 
 	return fsys.File{
-		FileInfo: fsys.FileInfo{
-			Name:  name,
-			Path:  path,
-			Size:  size,
-			IsDir: isDir,
-		},
+		Name:    name,
+		Path:    path,
+		Size:    size,
+		IsDir:   isDir,
 		Content: content,
 	}, nil
 }

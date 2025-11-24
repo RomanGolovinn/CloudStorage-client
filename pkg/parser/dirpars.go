@@ -1,4 +1,4 @@
-package structs
+package parser
 
 import (
 	"fmt"
@@ -6,54 +6,19 @@ import (
 	"strings"
 	"sync"
 
-	"CloudStorage-client/pkg/interfaces"
+	"CloudStorage-client/pkg/fsys"
 )
 
-type Directory struct {
-	FileInfo
-	Children []interfaces.FileSystemObject
-}
-
 type parseDirResult struct {
-	Object interfaces.FileSystemObject
+	Object fsys.FileSystemObject
 	Err    error
 }
 
-func (d Directory) IsDirectory() bool {
-	return d.IsDir
-}
-
-func (d Directory) GetSize() int64 {
-	return d.Size
-}
-
-func (d Directory) Update() error {
-	_, err := os.Stat(d.Path)
-	if err == os.ErrNotExist {
-		return d.create()
-	}
-
-	for _, obj := range d.Children {
-		_ = obj.Update()
-
-	}
-
-	return err
-}
-
-func (d Directory) create() error {
-	err := os.MkdirAll(d.Path+d.Name, 0755)
-	if err != nil {
-		return fmt.Errorf("can not create dir %s", (d.Path + d.Name))
-	}
-	return nil
-}
-
-func ParseDir(path string, wg *sync.WaitGroup) (Directory, error) {
+func ParseDir(path string, wg *sync.WaitGroup) (fsys.Directory, error) {
 	defer wg.Done()
 	entries, err := os.ReadDir(path)
 	if err != nil {
-		return Directory{}, fmt.Errorf("%s", err)
+		return fsys.Directory{}, fmt.Errorf("%s", err)
 	}
 
 	pathlist := strings.Split(path, "/")
@@ -62,18 +27,18 @@ func ParseDir(path string, wg *sync.WaitGroup) (Directory, error) {
 
 	if len(entries) == 0 {
 		size = 0
-		return Directory{
-			FileInfo: FileInfo{
+		return fsys.Directory{
+			FileInfo: fsys.FileInfo{
 				Name:  name,
 				Path:  path,
 				Size:  size,
 				IsDir: true,
 			},
-			Children: []interfaces.FileSystemObject{},
+			Children: []fsys.FileSystemObject{},
 		}, nil
 	}
 
-	children := make([]interfaces.FileSystemObject, len(entries))
+	children := make([]fsys.FileSystemObject, len(entries))
 
 	var dwg sync.WaitGroup //группа горутин для рекурсивного вызова
 	dwg.Add(len(entries))
@@ -106,14 +71,14 @@ func ParseDir(path string, wg *sync.WaitGroup) (Directory, error) {
 	for result := range results {
 		size += result.Object.GetSize()
 		if result.Err != nil {
-			return Directory{}, result.Err
+			return fsys.Directory{}, result.Err
 		}
 		children[index] = result.Object
 		index++
 	}
 
-	return Directory{
-		FileInfo: FileInfo{
+	return fsys.Directory{
+		FileInfo: fsys.FileInfo{
 			Name:  name,
 			Path:  path,
 			Size:  size,

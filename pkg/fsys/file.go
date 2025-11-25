@@ -17,11 +17,12 @@ type FileSystemObject interface {
 }
 
 type File struct {
-	Name  string `json:"name"`
-	Path  string `json:"path"` //путь хранится без имени
-	Size  int64  `json:"size"`
-	IsDir bool   `json:"is_dir"`
-	Hash  string `json:"hash"`
+	Name     string `json:"name"`
+	Path     string `json:"path"` //путь хранится без имени
+	ServPath string `json:"serv_path"`
+	Size     int64  `json:"size"`
+	IsDir    bool   `json:"is_dir"`
+	Hash     string `json:"hash"`
 }
 
 func (f File) IsDirectory() bool {

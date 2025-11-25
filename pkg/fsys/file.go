@@ -11,17 +11,17 @@ import (
 type FileSystemObject interface {
 	IsDirectory() bool
 	GetSize() int64
-	Update() error
+	UpdateFile([]byte) error
+	UpdateDir() error
 	GetHash() string
 }
 
 type File struct {
-	Name    string `json:"name"`
-	Path    string `json:"path"` //путь хранится без имени
-	Size    int64  `json:"size"`
-	IsDir   bool   `json:"is_dir"`
-	Hash    string `json:"hash"`
-	Content []byte `json:"content"`
+	Name  string `json:"name"`
+	Path  string `json:"path"` //путь хранится без имени
+	Size  int64  `json:"size"`
+	IsDir bool   `json:"is_dir"`
+	Hash  string `json:"hash"`
 }
 
 func (f File) IsDirectory() bool {
@@ -36,10 +36,10 @@ func (f File) GetHash() string {
 	return f.Hash
 }
 
-func (f File) Update() error {
+func (f File) UpdateFile(content []byte) error {
 	_, err := os.Stat(f.Path)
 	if err == os.ErrNotExist {
-		return f.create()
+		return f.create(content)
 	}
 	// Идея: сделать проверку на совпадение контента
 	// и исправлять только несовпадающий контент
@@ -47,10 +47,14 @@ func (f File) Update() error {
 	if err != nil {
 		return fmt.Errorf("can not remove file")
 	}
-	return f.create()
+	return f.create(content)
 }
 
-func (f File) create() error {
+func (f File) UpdateDir() error {
+	return nil
+}
+
+func (f File) create(content []byte) error {
 	_, err := os.Create(f.Path)
 	if err != nil {
 		return fmt.Errorf("can not create file %s", f.Path)
@@ -61,7 +65,7 @@ func (f File) create() error {
 	}
 	defer file.Close()
 
-	_, err = file.Write(f.Content)
+	_, err = file.Write(content)
 	if err != nil {
 		return fmt.Errorf("can not write file %s", f.Path)
 	}

@@ -19,17 +19,13 @@ func ParseFile(path string, wg *sync.WaitGroup) (fsys.File, error) {
 	}
 	size := info.Size()
 	isDir := info.IsDir()
-	content, err := getFileContent(path)
-	if err != nil {
-		return fsys.File{}, err
-	}
 
 	return fsys.File{
-		Name:    name,
-		Path:    path,
-		Size:    size,
-		IsDir:   isDir,
-		Content: content,
+		Name:  name,
+		Path:  path,
+		Size:  size,
+		IsDir: isDir,
+		Hash:  "",
 	}, nil
 }
 

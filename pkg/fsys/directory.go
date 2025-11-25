@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+var UpdateQueue = []FileSystemObject{}
+
 type Directory struct {
 	Name     string `json:"name"`
 	Path     string `json:"path"` //путь хранится без имени
@@ -30,18 +32,25 @@ func (d Directory) GetHash() string {
 	return d.Hash
 }
 
-func (d Directory) Update() error {
+func (d Directory) UpdateDir() error {
 	_, err := os.Stat(d.Path)
 	if err == os.ErrNotExist {
 		return d.create()
 	}
 
 	for _, obj := range d.Children {
-		_ = obj.Update()
-
+		if obj.IsDirectory() {
+			_ = obj.UpdateDir()
+		} else {
+			UpdateQueue = append(UpdateQueue, obj)
+		}
 	}
 
 	return err
+}
+
+func (d Directory) UpdateFile(content []byte) error {
+	return nil
 }
 
 func (d Directory) create() error {

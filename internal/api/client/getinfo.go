@@ -1,24 +1,38 @@
 package client
 
 import (
-	"CloudStorage-client/pkg/structs"
+	"CloudStorage-client/pkg/fsys"
+	"encoding/json"
+	"io"
 )
 
 type RespFile struct {
-	File    structs.File
-	Content []byte `json:"content"`
+	File    fsys.File `json:"file"`
+	Content []byte    `json:"content"`
 }
 
-func GetFile(ServPath string) (structs.File, error) {
+func GetFile(ServPath string) (RespFile, error) {
 	req := Request{
 		Method: "Get",
 		URL:    "http://localhost:8080/file", //localhost для тестирования
 		Body:   "getfile{" + ServPath + "}",
 	}
-	_, err := req.DoRequest()
+	resp, err := req.DoRequest()
 	if err != nil {
-		return structs.File{}, err
+		return RespFile{}, err
 	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return RespFile{}, err
+	}
+
+	file := RespFile{}
+	err = json.Unmarshal(body, &file)
+	if err != nil {
+		return RespFile{}, err
+	}
+
 	// тут надо записать resp в File
-	return structs.File{}, nil
+	return file, nil
 }
